@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Last Clue - CASE 4: ROYAL OPERA HOUSE</title>
+  <link rel="stylesheet" href="cases.css" />
+  <script type="importmap">
+   { "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+   } }
+  </script>
+</head>
+<body data-case="4">
+  <div id="game-container"></div>
+  <div id="reticle"></div>
+  <div id="interaction-prompt"> <span class="key-badge">E</span>  <span id="prompt-action">Inspect</span>  <span id="prompt-target">Object</span> </div>
+  <div id="proximity-speech-bubble" class="hidden">
+    <div class="bubble-header"> <span id="bubble-speaker">Suspect</span> speaking: </div>
+    <div id="bubble-text"></div>
+  </div>
+  <div id="deduction-ready-banner" class="hidden">
+   ⚡  <strong id="banner-text">ALL LIES EXPOSED:</strong>  <span id="banner-sub">Press [K] to Accuse Culprit!</span>
+  </div>
+  <div id="top-bar">
+    <button id="lang-toggle-btn" class="util-btn lang-btn">🌐 भाषा: HINDI</button>
+    <button id="voice-toggle-btn" class="util-btn voice-btn">🗣️ VOICE: ON</button>
+    <button id="audio-toggle-btn" class="util-btn" title="Toggle Sound">🔊 AUDIO: ON</button>
+    <a href="index.html" class="util-btn nav-btn" style="text-decoration:none; display:inline-block;">🏠 CASE 1</a>
+    <button id="notebook-hud-btn" class="util-btn">📒 NOTEBOOK [N]</button>
+    <button id="solve-shortcut-btn" class="util-btn solve-hud-tag">⚖️ ACCUSE [K]</button>
+  </div>
+  <div id="ui-overlay">
+    <div class="hud-panel">
+      <div class="detective-badge">
+        <img id="hud-avatar-img" class="badge-avatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 24 24' fill='%23d4af37'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Detective Avatar" />
+        <div class="badge-text">
+          <span class="badge-rank" id="hud-rank-label">LEAD DETECTIVE</span>
+          <span id="hud-detective-name" class="badge-name">Investigator</span>
+        </div>
+      </div>
+      <div class="hud-header-row">
+        <h1 class="game-title">THE LAST CLUE</h1>
+        <p class="game-subtitle" id="stage-badge">CASE 4: ROYAL OPERA HOUSE</p>
+      </div>
+      <div class="stats-row">
+        <div> <span id="label-score">Score:</span>  <span id="score-display" class="highlight">0</span> </div>
+        <div> <span id="label-clues">Evidence:</span>  <span id="clue-display" class="highlight">0 / 3</span> </div>
+        <div> <span id="label-contra">Contradictions:</span>  <span id="contra-display" class="highlight">0 / 1</span> </div>
+      </div>
+      <div class="status-indicator"> <span class="status-dot"></span> <span id="level-status">Examine the scene for forensic evidence</span> </div>
+      <div class="hud-keys-hint"> <span id="hint-inspect">[E] Inspect/Talk</span> •  <span id="hint-notebook">[N] Notebook</span> •  <span class="gold-text" id="hint-solve">[K] Solve Case</span> </div>
+    </div>
+  </div>
+  <div id="inspection-modal" class="modal-backdrop hidden">
+    <div class="dossier-card">
+      <div class="dossier-header">
+        <span class="badge" id="dossier-type">CRIME SCENE EVIDENCE</span>
+        <h2 id="dossier-title">Item Name</h2>
+        <span class="dossier-loc" id="dossier-location">Crime Scene</span>
+      </div>
+      <div class="dossier-img-container">
+        <img id="dossier-img" class="dossier-clue-img hidden" src="" alt="Forensic Evidence" onerror="this.classList.add('hidden')" />
+      </div>
+      <div class="dossier-body">
+        <p id="dossier-desc">Description.</p>
+        <div class="deduction-box"> <strong id="dossier-note-label">Detective Note:</strong>  <span id="dossier-note">Insight.</span> </div>
+      </div>
+      <div class="dossier-footer"> <button id="close-modal-btn">LOG EVIDENCE & RETURN [E]</button> </div>
+    </div>
+  </div>
+  <div id="dialogue-modal" class="modal-backdrop hidden">
+    <div class="interrogation-card">
+      <div class="suspect-profile-bar">
+        <div class="suspect-avatar-icon" id="suspect-avatar">👤</div>
+        <div> <h2 id="suspect-name">Suspect Name</h2> <span class="suspect-relation" id="suspect-role">Relation</span> </div>
+        <div class="interrogation-lang-tabs">
+          <button id="tab-lang-en" class="lang-pill active">🇬🇧 English</button>
+          <button id="tab-lang-hi" class="lang-pill">🇮🇳 हिन्दी</button>
+        </div>
+        <div class="speaking-indicator hidden" id="speaking-pulse">🗣️  <span id="speaking-text">Speaking...</span> </div>
+      </div>
+      <div class="dialogue-transcript-box" id="transcript-box" title="Click to complete line">
+        <div id="dialogue-turn-speaker" class="dialogue-turn-label">CASE 4: ROYAL OPERA HOUSE</div>
+        <p id="dialogue-speech">"..."</p>
+        <span id="typing-cursor" class="cursor-blink">▌</span>
+        <div id="contradiction-banner" class="contradiction-alert hidden">
+         ⚡  <strong id="contra-alert-title">CONTRADICTION EXPOSED:</strong>  <span id="contra-alert-sub">Statement broken!</span>
+        </div>
+      </div>
+      <div id="intro-controls" class="intro-controls-bar hidden"> <button id="skip-intro-btn" class="skip-btn">⏩ Skip Intro [Space / E]</button> </div>
+      <div id="interrogation-options-group" class="interrogation-options">
+        <button class="dialogue-choice" id="choice-alibi"> <span class="speaker-tag">🗣 You Ask:</span>  <span id="text-choice-alibi"></span> </button>
+        <button class="dialogue-choice" id="choice-motive"> <span class="speaker-tag">🗣 You Ask:</span>  <span id="text-choice-motive"></span> </button>
+        <button class="dialogue-choice confront-btn" id="choice-confront"> <span class="speaker-tag">⚖️ You Confront:</span>  <span id="text-choice-confront"></span> </button>
+      </div>
+      <div id="evidence-selector" class="evidence-picker-box hidden">
+        <p class="picker-title" id="picker-title-label">Select Evidence to Present:</p>
+        <div id="evidence-chips-container" class="chips-container"></div>
+        <button id="cancel-confront-btn" class="cancel-link">Cancel Confrontation</button>
+      </div>
+      <div class="interrogation-footer"> <button id="leave-dialogue-btn">END QUESTIONING [ESC / E]</button> </div>
+    </div>
+  </div>
+  <div id="notebook-modal" class="modal-backdrop hidden">
+    <div class="notebook-card">
+      <div class="notebook-header">
+        <div> <h2 id="notebook-title">CASE NOTEBOOK - EVIDENCE LOG</h2> <span class="notebook-tip" id="notebook-sub">Review collected clues</span> </div>
+        <span class="investigator-tag" id="notebook-investigator-tag">Officer: Investigator</span>
+      </div>
+      <div id="notebook-clues-list" class="notebook-body"></div>
+      <div class="notebook-footer"> <button id="close-notebook-btn">CLOSE NOTEBOOK [N]</button> </div>
+    </div>
+  </div>
+  <div id="deduction-modal" class="modal-backdrop hidden">
+    <div class="deduction-card">
+      <div class="deduction-header">
+        <h2 id="deduce-header-title">FINAL DEDUCTION BOARD</h2>
+        <p id="deduce-header-sub">Piece together the evidence, identify the killer, and state your formal accusation.</p>
+      </div>
+      <div class="deduction-columns">
+        <div class="deduction-field"> <label id="label-who">1. THE CULPRIT (WHO):</label>
+          <select id="deduce-culprit"></select> </div>
+        <div class="deduction-field"> <label id="label-why">2. THE MOTIVE (WHY):</label>
+          <select id="deduce-motive"></select> </div>
+        <div class="deduction-field"> <label id="label-how">3. SMOKING GUN (EVIDENCE):</label>
+          <select id="deduce-evidence"></select> </div>
+      </div>
+      <div class="deduction-actions">
+        <button id="submit-accusation-btn" class="accuse-btn">SUBMIT FORMAL ACCUSATION</button>
+        <button id="cancel-deduction-btn" class="cancel-deduce-btn">RETURN TO INVESTIGATION [K]</button>
+      </div>
+    </div>
+  </div>
+  <div id="win-modal" class="modal-backdrop hidden">
+    <div class="outcome-card success-card">
+      <div class="outcome-badge win-badge" id="win-badge-txt">CASE SOLVED</div>
+      <h2 id="win-title-txt">CULPRIT HAS CONFESSED</h2>
+      <p class="outcome-story" id="win-story-txt"></p>
+      <div class="score-summary-box">
+        <div> <span id="win-score-label">Final Investigation Score:</span>  <span id="win-final-score" class="score-num">0</span> </div>
+        <div id="win-rank-badge" class="rank-tag">Master Detective</div>
+      </div>
+      <div style="display:flex; justify-content:center; gap:10px;">
+        <button id="next-case-btn" class="next-case-btn">NEXT CASE ➔</button>
+        <button id="win-restart-btn" class="restart-btn">REPLAY CASE</button>
+      </div>
+    </div>
+  </div>
+  <div id="loss-modal" class="modal-backdrop hidden">
+    <div class="outcome-card fail-card">
+      <div class="outcome-badge fail-badge" id="fail-badge-txt">WRONGFUL ACCUSATION</div>
+      <h2 id="fail-title">INVESTIGATION COMPROMISED</h2>
+      <p id="fail-explanation" class="outcome-story"></p>
+      <div class="penalty-box" id="fail-penalty-txt">Penalty: -100 Points Deducted</div>
+      <div class="failure-button-row">
+        <button id="retry-deduction-btn" class="retry-btn">RETRY DEDUCTION [K]</button>
+        <button id="full-restart-btn" class="restart-link-btn">Restart Investigation</button>
+      </div>
+    </div>
+  </div>
+  <div id="blocker">
+    <div id="instructions" class="menu-box">
+      <h2>CASE 4: ROYAL OPERA HOUSE</h2>
+      <p class="instruction-lead" id="intro-subtitle">Severed Counterweight - Maestro Belmont Crushed Onstage</p>
+      <div class="start-settings-row">
+        <div class="setting-group">
+          <span class="setting-label" id="start-lang-label">LANGUAGE / भाषा:</span>
+          <div class="setting-toggle">
+            <button type="button" id="start-lang-en" class="toggle-pill active">English</button>
+            <button type="button" id="start-lang-hi" class="toggle-pill">हिन्दी</button>
+          </div> </div>
+        <div class="setting-group">
+          <span class="setting-label" id="start-voice-label">VOICE / आवाज़:</span>
+          <div class="setting-toggle">
+            <button type="button" id="start-voice-on" class="toggle-pill active">ON / चालू</button>
+            <button type="button" id="start-voice-off" class="toggle-pill">OFF / बंद</button>
+          </div> </div>
+      </div>
+      <div class="personalize-card">
+        <h3 id="intro-card-title">INVESTIGATOR PROFILE</h3>
+        <div class="avatar-upload-row">
+          <div class="avatar-preview-box">
+            <img id="avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 24 24' fill='%23d4af37'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Preview" />
+          </div>
+          <div class="avatar-inputs">
+            <input type="text" id="detective-name-input" placeholder="Enter Detective Name..." maxlength="20" value="Vance" />
+            <label for="avatar-file-input" class="upload-label" id="intro-upload-label">📷 Upload Photo / Selfie</label>
+            <input type="file" id="avatar-file-input" accept="image/*" class="hidden-input" />
+          </div>
+        </div>
+      </div>
+      <div class="controls-guide" id="intro-controls-guide">
+        <p><strong>W, A, S, D</strong> — Walk | <strong>Mouse</strong> — Look | <strong>Shift</strong> — Sprint</p>
+        <p><strong>E</strong> — Inspect / Interrogate | <strong>N</strong> — Notebook</p>
+        <p><strong>K</strong> — Accuse Culprit | <strong>Voice</strong> — Spoken dialogue (ENG/HIN)</p>
+      </div>
+      <button type="button" id="start-btn">BEGIN INVESTIGATION</button>
+    </div>
+    <div id="pause-menu" class="menu-box hidden">
+      <h2 id="pause-title">INVESTIGATION PAUSED</h2>
+      <p class="instruction-lead" id="pause-sub">Review evidence or state your final accusation.</p>
+      <div class="pause-actions">
+        <button id="resume-btn" class="pause-btn primary">RESUME INVESTIGATION</button>
+        <button id="pause-deduce-btn" class="pause-btn gold">⚖️ MAKE FINAL ACCUSATION [K]</button>
+        <button id="pause-notebook-btn" class="pause-btn">📒 OPEN CASE NOTEBOOK [N]</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="src/cases.js"></script>
+
+   <button id="case-guide-open" class="case-guide-open" type="button">🕵️ DETECTIVE GUIDE</button>
+   <section id="case-guide-panel" class="case-guide-panel" aria-label="Detective guide" hidden>
+     <div class="case-guide-head">
+       <div> <span class="case-guide-kicker">FIELD ASSISTANT</span> <h2 id="case-guide-title">Investigation Guide</h2> </div>
+       <button id="case-guide-close" class="case-guide-close" type="button" aria-label="Close guide">×</button>
+     </div>
+     <p id="case-guide-intro"></p>
+     <div class="case-guide-actions">
+       <button id="case-guide-briefing" type="button">📌 Case briefing</button>
+       <button id="case-guide-hint" type="button">💡 Next hint</button>
+       <button id="case-guide-clues" type="button">🔎 Evidence list</button>
+       <button id="case-guide-speak" type="button">🔊 Read aloud</button>
+     </div>
+     <div id="case-guide-output" aria-live="polite"></div>
+     <p class="case-guide-foot">Hints are revealed one at a time. Examine the scene and compare evidence with each suspect’s statement.</p>
+   </section>
+
+</body>
+</html>
