@@ -153,3 +153,11 @@ body, html { width:100%; height:100%; overflow:hidden; background:#050608; font-
 .pause-btn.gold:hover { filter:brightness(1.15); }
 @keyframes slideUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
 @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.4; transform:scale(.85); } }
+
+/* HOTKEYS_V1 BEGIN */
+#lang-toggle-btn::after { content: " [L]"; }
+#voice-toggle-btn::after { content: " [V]"; }
+#audio-toggle-btn::after { content: " [M]"; }
+#case-guide-open::after { content: " [G]"; }
+a.nav-btn::after { content: " [H]"; }
+/* HOTKEYS_V1 END */
